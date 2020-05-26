@@ -49,15 +49,20 @@ parser.add_argument('-o', dest='output_file', default='-',
 args = parser.parse_args()
 
 if args.output_file == '-':
-    args.output_file = sys.stdout
+    output_file = sys.stdout
+else:
+    output_file = open(args.output_file, 'w')
 
 if args.input_file == '-':
-    args.input_file = sys.stdin
+    input_file = sys.stdin
+else:
+    input_file = open(args.input_file)
 
 
 
-with open(args.input_file) as file:
-    wordlist = [line.split()[-1] for line in file.readlines()]
+wordlist = [line.split()[-1] for line in input_file.readlines()]
+if input_file is not sys.stdin:
+    input_file.close()
 
 finger_groups = ('qaz', 'wsx', 'edc', 'rfvtgb', 'yhnujm', 'ik', 'ol', 'p')
 finger_groups = zip(range(len(finger_groups)), finger_groups)
@@ -72,10 +77,12 @@ def is_easy(word):
     rest = code[1:]
     return not any(map(eq, most, rest))
 
-with open(args.output_file, 'w') as file:
-    for word in wordlist:
-        if '-' not in word and is_easy(word):
-            try:
-                file.write(word + '\n')
-            except BrokenPipeError:
-                pass
+for word in wordlist:
+    if '-' not in word and is_easy(word):
+        try:
+            output_file.write(word + '\n')
+        except BrokenPipeError:
+            pass
+
+if output_file is not sys.stdout:
+    output_file.close()
